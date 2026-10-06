@@ -6,6 +6,8 @@
 .lamp{display:inline-block;color:#63ff9f;text-shadow:0 0 5px currentColor}
 .blinkA{animation:prgBlinkA 1.15s steps(1,end) infinite}.blinkB{animation:prgBlinkB 1.7s steps(1,end) infinite}.blinkC{animation:prgBlinkC .72s steps(1,end) infinite}
 @keyframes prgBlinkA{0%,68%{opacity:1}69%,100%{opacity:.18}}@keyframes prgBlinkB{0%,35%{opacity:.18}36%,82%{opacity:1}83%,100%{opacity:.18}}@keyframes prgBlinkC{0%,48%{opacity:1}49%,100%{opacity:.16}}
+
+.rfmon{position:relative;overflow:hidden}.rfFreq{font-size:19px;letter-spacing:1px;margin:5px 0}.rfFreq small{font-size:9px;color:#75ffad}.rfBars{height:27px;display:flex;align-items:flex-end;gap:2px;margin:4px 0 7px}.rfBars i{display:block;width:8px;background:#75ffad;opacity:.25;height:20%}.rfBars i.on{opacity:.9;box-shadow:0 0 5px #75ffad}.rfLine{display:flex;justify-content:space-between;font-size:10px;line-height:16px}.rfLine b{font-weight:400;color:#75ffad}.miniScan{position:absolute;right:8px;top:25px;width:42px;height:42px;border:1px solid rgba(117,255,173,.45);border-radius:50%}.miniScan:after{content:'';position:absolute;inset:8px;border:1px solid rgba(117,255,173,.2);border-radius:50%}.miniScan b{position:absolute;top:44px;left:7px;font-size:8px;font-weight:400}.scanNeedle{position:absolute;left:20px;top:4px;width:1px;height:17px;background:#75ffad;transform-origin:50% 17px;animation:miniSweep 2.6s linear infinite;box-shadow:0 0 4px #75ffad}@keyframes miniSweep{to{transform:rotate(360deg)}}
 </style></head>
 <body><header>PRG-01 // AIRSPACE SURVEILLANCE <span class="ok" id="status">● CONNECTING</span></header><div class="wrap"><div id="scope"><canvas id="c"></canvas><div id="zoom" style="position:absolute;left:12px;bottom:12px;display:flex;gap:5px;align-items:center"><button id="minus">−</button><span id="zr" style="min-width:58px;text-align:center">100 NM</span><button id="plus">+</button></div></div><aside><h3>TRACK CONTROL</h3><div class="row"><span class="dim">SECTOR</span><br>PRAGUE / 01</div><div class="row"><span class="dim">SOURCE</span><br><span id="source">NET LIVE</span></div><div class="row"><span class="dim">RANGE</span><br>100 NM / 185 KM</div><div class="row"><span class="dim">TRACKS</span><br><span id="tracks">0</span></div><div class="row"><span class="dim">SELECTED TARGET</span><br><span id="sel">NO TARGET</span></div><button id="refresh">REFRESH</button><button id="full">FULL SCREEN</button><button id="sound">SOUND ARM</button>
 <div class="row"><span class="dim">SYSTEM CHECK</span><br><span id="check">AUDIO DISARMED</span><br><span class="dim">NEXT CHECK</span> <span id="countdown">--</span></div>
@@ -16,6 +18,13 @@
 <span class="lamp blinkA">●</span> RF RX&nbsp;&nbsp;
 <span class="lamp blinkB">●</span> DATA&nbsp;&nbsp;
 <span class="lamp blinkC">●</span> SWEEP
+</div><div class="row rfmon">
+<span class="dim">RF MONITOR // RX ONLY</span>
+<div class="rfFreq">1090.000 <small>MHz</small></div>
+<div id="rfBars" class="rfBars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<div class="rfLine"><span>RX PKT</span><b id="rxPackets">000000</b></div>
+<div class="rfLine"><span>LINK</span><b id="linkQuality">---------- 0%</b></div>
+<div class="miniScan"><span class="scanNeedle"></span><b>SCAN</b></div>
 </div><div class="note">REAL TRAFFIC ONLY<br>NET ADS-B FEED<br>LOCAL SDR STANDBY</div></aside></div>
 <script>
 const LAT=50.0755,LON=14.4378,RANGE=100, cv=document.getElementById('c'),x=cv.getContext('2d');let planes=[],sweep=0,viewRange=100,trails=new Map(),audioCtx=null,audioArmed=false,labelsOn=true,trailsOn=true,vectorsOn=true,ringsOn=true,nextCheck=0;
@@ -41,4 +50,4 @@ document.getElementById('trailsBtn').onclick=()=>{trailsOn=!trailsOn;document.ge
 document.getElementById('vectorsBtn').onclick=()=>{vectorsOn=!vectorsOn;document.getElementById('vectorsBtn').textContent='VECTORS '+(vectorsOn?'ON':'OFF')};
 document.getElementById('rangeBtn').onclick=()=>{ringsOn=!ringsOn;document.getElementById('rangeBtn').textContent='RINGS '+(ringsOn?'ON':'OFF')};
 document.getElementById('minus').onclick=()=>{viewRange=Math.min(250,viewRange+25);document.getElementById('zr').textContent=viewRange+' NM'};document.getElementById('plus').onclick=()=>{viewRange=Math.max(25,viewRange-25);document.getElementById('zr').textContent=viewRange+' NM'};document.getElementById('refresh').onclick=load;document.getElementById('full').onclick=()=>document.documentElement.requestFullscreen?.();
-</script></body></html>
+setInterval(()=>{let n=(window.__rxPackets||0);let rp=document.getElementById('rxPackets');if(rp)rp.textContent=String(n).padStart(6,'0').slice(-6)},1000);</script></body></html>
